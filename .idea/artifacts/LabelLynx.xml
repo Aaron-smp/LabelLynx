@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="LabelLynx">
+    <output-path>$PROJECT_DIR$/out/artifacts/LabelLynx</output-path>
+    <root id="archive" name="LabelLynx.jar" />
+  </artifact>
+</component>
