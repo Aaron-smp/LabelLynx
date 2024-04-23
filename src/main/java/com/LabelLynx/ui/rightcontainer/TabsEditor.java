@@ -15,6 +15,8 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 
+import static com.LabelLynx.ui.rightcontainer.Editor.*;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class TabsEditor extends JTabbedPane{
@@ -84,5 +86,18 @@ public class TabsEditor extends JTabbedPane{
             }
         }
         return -1;
+    }
+
+    public void changeViewEditor(int view){
+        String vista = switch (view) {
+            case 0 -> DIVIDED_VIEW;
+            case 1 -> TEXT_VIEW;
+            case 2 -> TABLE_VIEW;
+            default -> "";
+        };
+
+        for(Editor editor : editors){
+            editor.init(vista);
+        }
     }
 }

@@ -1,7 +1,12 @@
 package com.LabelLynx.ui.menus;
 
+import com.LabelLynx.ui.rightcontainer.TabsEditor;
+
 import javax.swing.*;
 import java.awt.*;
+
+import static com.LabelLynx.ui.rightcontainer.ContainerEditorAnotations.tabsEditor;
+import static com.LabelLynx.ui.rightcontainer.Editor.*;
 
 public class TopMenu extends JMenuBar{
 
@@ -10,9 +15,9 @@ public class TopMenu extends JMenuBar{
         JMenu editMenu = new JMenu("Editar");
         JMenu tools = new JMenu("Herramientas");
         JMenu help = new JMenu("Ayuda");
+        JMenu view = new JMenu("Vista");
 
         JMenuItem newItem = new JMenuItem("Nuevo");
-        newItem.addActionListener((e) -> System.out.println("Nuevo"));
         JMenuItem openItem = new JMenuItem("Abrir");
         JMenuItem saveItem = new JMenuItem("Guardar");
         JMenuItem exitItem = new JMenuItem("Salir");
@@ -29,17 +34,27 @@ public class TopMenu extends JMenuBar{
         editMenu.add(undoItem);
         editMenu.add(cut);
 
+        JMenuItem dobleView = new JMenuItem("Vista dividida");
+        dobleView.addActionListener((e) -> {
+            tabsEditor.changeViewEditor(0);
+        });
+        JMenuItem textView = new JMenuItem("Vista solo texto");
+        textView.addActionListener((e) -> {
+            tabsEditor.changeViewEditor(1);
+        });
+        JMenuItem onlyReadView = new JMenuItem("Vista solo lectura");
+        onlyReadView.addActionListener((e) -> {
+            tabsEditor.changeViewEditor(2);
+        });
+
+        view.add(dobleView);
+        view.add(textView);
+        view.add(onlyReadView);
+
         this.add(fileMenu);
         this.add(editMenu);
+        this.add(view);
         this.add(tools);
         this.add(help);
-    }
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setSize(new Dimension(600, 300));
-        frame.setLocationRelativeTo(null);
-        frame.setJMenuBar(new TopMenu());
-        frame.setVisible(true);
     }
 }
