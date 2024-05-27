@@ -4,10 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 
 public class Anotations extends JPanel {
+    private TextArea textArea;
+    private JLabel contentLabel;
     protected Anotations(){
         super.setLayout(new BorderLayout());
-        add(new Label("Anotaciones"), BorderLayout.NORTH);
-        TextArea textArea = new TextArea("Vacío");
+        add(contentLabel = new JLabel("Anotaciones"), BorderLayout.NORTH);
+        textArea = new TextArea("Vacío");
         textArea.setEditable(false);
         add(textArea, BorderLayout.CENTER);
         setMaximumSize(new Dimension(150, Integer.MAX_VALUE));

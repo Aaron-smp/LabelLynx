@@ -1,6 +1,7 @@
 package com.LabelLynx.ui.menus;
 
 import com.LabelLynx.ui.rightcontainer.TabsEditor;
+import com.LabelLynx.utils.CustomFonts;
 
 import javax.swing.*;
 import java.awt.*;

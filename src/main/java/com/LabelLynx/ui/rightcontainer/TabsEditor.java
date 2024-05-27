@@ -1,7 +1,8 @@
 package com.LabelLynx.ui.rightcontainer;
 
-import com.LabelLynx.controlers.ConvertFileToText;
+import com.LabelLynx.controlers.CsvSeparator;
 import com.LabelLynx.ui.customcomponents.CloseTabsPanel;
+import com.LabelLynx.utils.CustomFonts;
 import com.LabelLynx.utils.Icons;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,15 +42,15 @@ public class TabsEditor extends JTabbedPane{
                 logger.info("Pestaña seleccionada: " + tabRonda.getSelectedIndex());
                 if (tabRonda.getSelectedIndex() == getTabCount()-1 && tabRonda.getTitleAt(tabRonda.getSelectedIndex()).equals("+")) {
                     int tab = tabRonda.getTabCount();
-
+                    System.out.println(CustomFonts.actualFont.getName());
                     Editor editor = new Editor();
                     editors.add(editor);
                     logger.info("Nuevo editor añadido por click, numero de editores {}", editors.size());
                     tabRonda.insertTab("Nuevo " + tab, null, editor, "Nuevo " + tab, tab-1);
                     tabRonda.setTabComponentAt(tab-1, new CloseTabsPanel("Nuevo " + tab, editor.getIdentifier()));
                     tabRonda.setSelectedIndex(getTabCount()-2);
+                    CustomFonts.setFontRecursively(tabRonda, CustomFonts.actualFont);
                 }
-
             }
         });
 
@@ -58,10 +59,8 @@ public class TabsEditor extends JTabbedPane{
 
     public void addTabWithText(File file){
         if(null != file){
-            String extension = file.getPath().substring(file.getPath().lastIndexOf("."));
-            logger.info("La extension del archivo seleccionado es: {}", extension);
-            if (extension.equals(".csv") || extension.equals(".properties")) {
-                Editor newEditor = new Editor(ConvertFileToText.getText(file), file.getAbsolutePath());
+            if (CsvSeparator.isCsvOrProp(file)) {
+                Editor newEditor = new Editor(file.getAbsolutePath());
                 if(getEditorByHash(newEditor.getIdentifier()) == -1){
                     editors.add(newEditor);
                     logger.info("Nuevo editor añadido desde archivo, numero de editores {}", editors.size());
@@ -69,6 +68,7 @@ public class TabsEditor extends JTabbedPane{
                     super.insertTab(file.getName(), null, newEditor, file.getName(), tab-1);
                     super.setTabComponentAt(tab-1, new CloseTabsPanel(file.getName(), newEditor.getIdentifier()));
                     super.setSelectedIndex(getTabCount()-2);
+                    CustomFonts.setFontRecursively(this, CustomFonts.actualFont);
                 }else {
                     JOptionPane.showMessageDialog(this, "El archivo ya está en el editor", "Aviso", JOptionPane.WARNING_MESSAGE);
                 }
@@ -97,7 +97,7 @@ public class TabsEditor extends JTabbedPane{
         };
 
         for(Editor editor : editors){
-            editor.init(vista);
+            editor.initView(vista);
         }
     }
 }
