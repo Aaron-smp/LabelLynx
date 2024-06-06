@@ -42,7 +42,6 @@ public class TabsEditor extends JTabbedPane{
                 logger.info("Pestaña seleccionada: " + tabRonda.getSelectedIndex());
                 if (tabRonda.getSelectedIndex() == getTabCount()-1 && tabRonda.getTitleAt(tabRonda.getSelectedIndex()).equals("+")) {
                     int tab = tabRonda.getTabCount();
-                    System.out.println(CustomFonts.actualFont.getName());
                     Editor editor = new Editor();
                     editors.add(editor);
                     logger.info("Nuevo editor añadido por click, numero de editores {}", editors.size());

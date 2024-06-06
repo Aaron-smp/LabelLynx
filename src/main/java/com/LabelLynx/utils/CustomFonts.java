@@ -8,12 +8,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class CustomFonts {
     private static final Logger logger = LogManager.getLogger(CustomFonts.class);
     private static final String FONTS_PATH = "/fonts/";
     public static Font actualFont = getFontFromResources("Cabin.tff");
     public static Font defaultFont = getFontFromResources("JetBrainsMono-Regular.ttf");
+    private static HashMap<ConfigText, Object> configurationText;
 
     private CustomFonts(){
     }
@@ -72,5 +74,121 @@ public class CustomFonts {
 
     public static ArrayList<String> listCustomFonts(){
         return new ArrayList<>(Arrays.asList("Cabin.ttf", "Greek-Freak.ttf", "Hey Comic.ttf", "Hey Comic.otf", "Jersey15-Regular.ttf", "JetBrainsMono-Regular.ttf", "LibreBaskerville-Regular.ttf", "MarioDS.ttf", "Mom.ttf", "Poppins-Regular.ttf", "Roboto-Regular.ttf"));
+    }
+
+    private enum ConfigText{
+        FONT, COLOR_HEADERS, COLOR_CONTENT, COLOR_SEPARATOR, FONT_SIZE_HEADERS, FONT_SIZE_CONTENT;
+    }
+    private static void configurationText(){
+        configurationText = new HashMap<>();
+        configurationText.put(ConfigText.FONT, CustomFonts.actualFont);
+        configurationText.put(ConfigText.COLOR_HEADERS, new Color(0, 1, 47));
+        configurationText.put(ConfigText.COLOR_CONTENT, new Color(82, 136, 66));
+        configurationText.put(ConfigText.COLOR_SEPARATOR, new Color(249, 115, 0));
+        configurationText.put(ConfigText.FONT_SIZE_HEADERS, 15);
+        configurationText.put(ConfigText.FONT_SIZE_CONTENT, 15);
+    }
+
+    public static Font getTextFont(){
+        if (configurationText != null) {
+            return (Font) configurationText.get(ConfigText.FONT);
+        }else{
+            configurationText();
+            return getTextFont();
+        }
+    }
+
+    public static Color getColorHeaders(){
+        if (configurationText != null) {
+            return (Color) configurationText.get(ConfigText.COLOR_HEADERS);
+        }else{
+            configurationText();
+            return getColorHeaders();
+        }
+    }
+
+    public static Color getColorContent(){
+        if (configurationText != null) {
+            return (Color) configurationText.get(ConfigText.COLOR_CONTENT);
+        }else{
+            configurationText();
+            return getColorContent();
+        }
+    }
+
+    public static Color getColorSeparator(){
+        if (configurationText != null) {
+            return (Color) configurationText.get(ConfigText.COLOR_SEPARATOR);
+        }else{
+            configurationText();
+            return getColorSeparator();
+        }
+    }
+
+    public static Integer getSizeHeaders(){
+        if (configurationText != null) {
+            return (Integer) configurationText.get(ConfigText.FONT_SIZE_HEADERS);
+        }else{
+            configurationText();
+            return getSizeHeaders();
+        }
+    }
+
+    public static Integer getSizeContent(){
+        if (configurationText != null) {
+            return (Integer) configurationText.get(ConfigText.FONT_SIZE_CONTENT);
+        }else{
+            configurationText();
+            return getSizeContent();
+        }
+    }
+
+    public static void setTextFont(Font font){
+        if (configurationText != null) {
+            configurationText.put(ConfigText.FONT, font);
+        }else{
+            configurationText();
+            setTextFont(font);
+        }
+    }
+    public static void setColorHeaders(Color colorHeaders){
+        if (configurationText != null) {
+            configurationText.put(ConfigText.COLOR_HEADERS, colorHeaders);
+        }else{
+            configurationText();
+
+        }
+    }
+    public static void setColorContent(Color colorContent){
+        if (configurationText != null) {
+            configurationText.put(ConfigText.COLOR_CONTENT, colorContent);
+        }else{
+            configurationText();
+
+        }
+    }
+    public static void setColorSeparator(Color colorSeparator){
+        if (configurationText != null) {
+            configurationText.put(ConfigText.COLOR_SEPARATOR, colorSeparator);
+        }else{
+            configurationText();
+
+        }
+    }
+    public static void setSizeHeaders(Integer sizeHeaders){
+        if (configurationText != null) {
+            configurationText.put(ConfigText.FONT_SIZE_HEADERS, sizeHeaders);
+        }else{
+            configurationText();
+
+        }
+    }
+    public static void setSizeContent(Integer sizeContent){
+        if (configurationText != null) {
+            configurationText.put(ConfigText.FONT_SIZE_CONTENT, sizeContent);
+        }else{
+            configurationText();
+
+        }
     }
 }

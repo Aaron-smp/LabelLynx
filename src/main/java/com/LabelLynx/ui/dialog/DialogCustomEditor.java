@@ -1,20 +1,24 @@
 package com.LabelLynx.ui.dialog;
 
 import com.LabelLynx.ui.rightcontainer.Editor;
+import com.LabelLynx.ui.rightcontainer.contenteditor.FileTableCustom;
+import com.LabelLynx.ui.rightcontainer.contenteditor.TextEditor;
 import com.LabelLynx.utils.CustomFonts;
 
 import javax.swing.*;
 import java.awt.*;
 
-import static com.LabelLynx.LabelLynxApplication.ventana;
 import static com.LabelLynx.ui.rightcontainer.ContainerEditorAnotations.tabsEditor;
 import static com.LabelLynx.utils.CustomFonts.getFontFromResources;
-import static java.awt.GridBagConstraints.HORIZONTAL;
 import static java.awt.GridBagConstraints.NONE;
 
 public class DialogCustomEditor extends JDialog {
+    private Color fondo;
+    private static Color texto;
     public DialogCustomEditor(JFrame frame){
         super(frame, "Modificar texto editor", true);
+        fondo = null;
+        texto = null;
         setResizable(true);
         setMinimumSize(new Dimension(500, 400));
         inicializeUI(frame);
@@ -77,7 +81,7 @@ public class DialogCustomEditor extends JDialog {
         gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.BOTH;
-        JSpinner fontSize = getjSpinner(colorFont, frame.getFont().getSize2D());
+        JSpinner fontSize = getSpinnerSizeFont(colorFont, frame.getFont().getSize2D());
         contentPane.add(fontSize, gbc);
 
         gbc.gridx = 0;
@@ -88,9 +92,9 @@ public class DialogCustomEditor extends JDialog {
         JColorChooser colorChooser = new JColorChooser();
         colorButton.addActionListener((e) -> {
             int resultado = JOptionPane.showConfirmDialog(null, colorChooser, "Selecciona un color", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            System.out.println(resultado);
             if(resultado == 0){
                 colorFont.setBackground(colorChooser.getColor());
+                fondo = colorChooser.getColor();
                 colorRatio.setText("Contraste: " + CustomFonts.getContractRatio(colorFont.getBackground(), colorFont.getForeground()));
             }
         });
@@ -99,7 +103,7 @@ public class DialogCustomEditor extends JDialog {
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.gridwidth = 3;
-        JButton colorText = getjButton(colorChooser, colorFont, colorRatio);
+        JButton colorText = getColorButton(colorChooser, colorFont, colorRatio);
         contentPane.add(colorText, gbc);
 
         gbc.gridx = 0;
@@ -108,9 +112,8 @@ public class DialogCustomEditor extends JDialog {
         JButton acceptButton = new JButton("Aceptar");
 
         acceptButton.addActionListener((e) -> {
-            setEditorsFont(colorFont.getFont());
+            setEditorsFont(colorFont.getFont(), fondo, texto);
             CustomFonts.actualFont = colorFont.getFont();
-            System.out.println(CustomFonts.actualFont);
         });
 
         contentPane.add(acceptButton, gbc);
@@ -118,27 +121,43 @@ public class DialogCustomEditor extends JDialog {
         setContentPane(contentPane);
     }
 
-    private void setEditorsFont(Font fuente){
+    private void setEditorsFont(Font fuente, Color fondo, Color texto){
         for (Editor editor : tabsEditor.getEditors()){
-            CustomFonts.setFontRecursively(editor.getScrollPaneTable(), fuente);
-            CustomFonts.setFontRecursively(editor.getScrollPaneText(), fuente);
+            JTextPane textPaneEditor = (JTextPane) editor.getScrollPaneText().getViewport().getView();
+            JTable tableEditor = (JTable) editor.getScrollPaneTable().getViewport().getView();
+
+            if(textPaneEditor instanceof TextEditor){
+                textPaneEditor.setBackground(fondo);
+                textPaneEditor.setForeground(texto);
+                textPaneEditor.setFont(fuente);
+            }
+
+            if(tableEditor instanceof FileTableCustom){
+                ((FileTableCustom) tableEditor).getDefaultTableCellRenderer().setBackground(fondo);
+                ((FileTableCustom) tableEditor).getDefaultTableCellRenderer().setForeground(texto);
+                tableEditor.getTableHeader().setBackground(fondo);
+                tableEditor.getTableHeader().setForeground(texto);
+                tableEditor.setFont(fuente);
+                tableEditor.repaint();
+            }
         }
     }
 
-    private static JButton getjButton(JColorChooser colorChooser, JLabel colorFont, JLabel colorRatio) {
+    private static JButton getColorButton(JColorChooser colorChooser, JLabel colorFont, JLabel colorRatio) {
         JButton colorText = new JButton("Color del texto");
 
         colorText.addActionListener((e) -> {
             int resultado = JOptionPane.showConfirmDialog(null, colorChooser, "Selecciona un color", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
             if(resultado == 0){
                 colorFont.setForeground(colorChooser.getColor());
+                texto = colorChooser.getColor();
                 colorRatio.setText("Contraste: " + CustomFonts.getContractRatio(colorFont.getBackground(), colorFont.getForeground()));
             }
         });
         return colorText;
     }
 
-    private static JSpinner getjSpinner(JLabel colorFont, float value) {
+    private static JSpinner getSpinnerSizeFont(JLabel colorFont, float value) {
         JSpinner fontSize = new JSpinner();
         SpinnerModel model = new SpinnerNumberModel(value, 1.0, 40.0, 1.0);
         fontSize.setModel(model);

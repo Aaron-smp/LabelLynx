@@ -32,6 +32,7 @@ public class CloseTabsPanel extends JPanel {
             logger.info("Pestaña a cerrar {}", idNum);
             tabsEditor.removeTabAt(tabsEditor.getEditorByHash(id));
             tabsEditor.getEditors().remove(tabsEditor.getEditorByHash(id));
+            tabsEditor.setSelectedIndex(tabsEditor.getTabCount()-2);
         });
     }
 }

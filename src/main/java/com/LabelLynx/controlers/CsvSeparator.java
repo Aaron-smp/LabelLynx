@@ -28,11 +28,15 @@ public class CsvSeparator {
     private ArrayList<String> encabezados;
     private ArrayList<String> lineas;
     private ArrayList<List<String>> contenido;
-    private int[][] lineaStartFinal;
+
     private String SEPARATOR = null;
     private int sizeStringEncabezado;
 
-    public CsvSeparator(String separador) throws IOException {
+    public CsvSeparator() {
+        this(",");
+    }
+
+    public CsvSeparator(String separador) {
         SEPARATOR = separador;
         encabezados = new ArrayList<>();
         lineas = new ArrayList<>();
@@ -61,100 +65,7 @@ public class CsvSeparator {
         fichero[0] = encabezadoLn;
         fichero[1] = sb.toString();
 
-        calculateLongLine();
-
         return fichero;
-    }
-
-    public boolean isValidLine(String nuevaLinea){
-        return nuevaLinea.split(SEPARATOR).length == encabezados.size();
-    }
-
-    /*
-     * Linea donde se actualizara el string
-     * Nueva linea es el string nuevo a remplazar
-     *
-     * El método recalculará las posiciones hacia abajo de la posición indicada
-     * y actualizara la linea y el contenido
-     *
-     * 1- Comprueba que la nueva línea esté bien
-     * 2- Comprueba que la posición sea válida
-     * 3- Se separa la línea nueva en las partes correspondientes
-     * 4- Se actualizan los arrays correspondientes
-     *
-     */
-    public void updateAndReordenateLine(int linea, String nuevaLinea){
-        if (!isValidLine(nuevaLinea)) return;
-        if (linea >= lineas.size()) return;
-        int inicio = lineaStartFinal[linea][0];
-
-        lineas.set(linea, nuevaLinea);
-
-        for(int i = linea; i < lineas.size(); i++){
-            inicio = inicio + lineas.get(i).length();
-
-            lineaStartFinal[i][1] = inicio;
-            lineaStartFinal[i][0] = lineaStartFinal[i][1]-lineas.get(i).length();
-        }
-
-        ArrayList<String> updateLine = separateLine(nuevaLinea);
-        contenido.set(linea, updateLine);
-    }
-
-    public ArrayList<String> separateLine(String linea){
-        ArrayList<String> stringArrayList = new ArrayList<>();
-        StringBuilder palabra = new StringBuilder();
-        boolean insideComillas = false;
-        //Por cada caracter de la linea
-        int numCharacters = linea.length();
-        ArrayList<String> lineaPalabras = new ArrayList<>();
-        int cont = 0;
-        for(int e = 0; e < linea.length(); e++){
-            String caracter = String.valueOf(linea.charAt(e));
-            if(caracter.equals("\\" + SEPARATOR)){
-                insideComillas = !insideComillas;
-            }
-            if (insideComillas){
-                palabra.append(caracter);
-            }else{
-                if(caracter.equals(SEPARATOR)){
-                    lineaPalabras.add(palabra.toString());
-                    palabra.setLength(0);
-                    cont = cont+1;
-                }else{
-                    palabra.append(caracter);
-                    if (numCharacters-1 == e){
-                        lineaPalabras.add(palabra.toString());
-                        cont = cont+1;
-                    }
-                }
-            }
-        }
-
-        return lineaPalabras;
-    }
-
-    /*
-     * Calcula la longitud y almacena el inicio y final
-     * de cada línea.
-     */
-    public void calculateLongLine(){
-        lineaStartFinal = new int[lineas.size()][2];
-        logger.info("Primera linea: {}", lineas.get(0));
-
-        int inicio = sizeStringEncabezado;
-
-        for(int i = 0; i < lineas.size(); i++){
-            lineaStartFinal[i][0] = inicio;
-            inicio = inicio + lineas.get(i).length();
-            inicio++; //Añade una posición mas por el salto de linea
-
-            lineaStartFinal[i][1] = inicio;
-
-            logger.info("Tabla posiciones: {}, {}", lineaStartFinal[i][0], lineaStartFinal[i][1]);
-        }
-
-        logger.info("Total caracteres fichero: {}", lineaStartFinal[lineas.size()-1][1]);
     }
 
     public HashMap<Integer, String> getWrongLines(){
@@ -182,120 +93,67 @@ public class CsvSeparator {
         return listaLineaError;
     }
 
-    public void analiseLines(){
+    public ArrayList<List<String>> analiseLines(ArrayList<String> lineas){
+        //EL ARRAY DE LINEAS, CONTIENE LAS LINEAS TAL CUAL LAS CONTIENE EL ARCHIVO O EDITOR!
         ArrayList<List<String>> contenido = new ArrayList<>();
         //Por cada linea del texto
-        for(int i = 0; i < lineas.size(); i++){
-            StringBuilder palabra = new StringBuilder();
-            boolean insideComillas = false;
-            //Por cada caracter de la linea
-            int numCharacters = lineas.get(i).length();
-            List<String> lineaPalabras = new ArrayList<>();
-            int cont = 0;
-            for(int e = 0; e < lineas.get(i).length(); e++){
-                String caracter = String.valueOf(lineas.get(i).charAt(e));
-                if(caracter.equals("\\" + SEPARATOR)){
-                    insideComillas = !insideComillas;
-                }
-                if (insideComillas){
-                    palabra.append(caracter);
-                }else{
-                    if(caracter.equals(SEPARATOR)){
-                        lineaPalabras.add(palabra.toString());
-                        palabra.setLength(0);
-                        cont = cont+1;
-                    }else{
-                        palabra.append(caracter);
-                        if (numCharacters-1 == e){
-                            lineaPalabras.add(palabra.toString());
-                            cont = cont+1;
-                        }
-                    }
-                }
-            }
-            contenido.add(lineaPalabras);
-            cont = 0;
+        lineas = lineas == null ? this.lineas : lineas;
+
+        for (String linea : lineas) {
+            contenido.add(analiseLine(linea));
         }
         this.contenido = contenido;
         fillContenidoWithNull();
         logger.info("Contenido: \n {}", contenido);
+        return contenido;
     }
 
+    public List<String> analiseLine(String line){
+        StringBuilder palabra = new StringBuilder();
+        boolean insideComillas = false;
+        //Por cada caracter de la linea
+        int numCharacters = line.length();
+        List<String> lineaPalabras = new ArrayList<>();
+        int cont = 0;
+        for(int e = 0; e < line.length(); e++){
+            String caracter = String.valueOf(line.charAt(e));
+            if(caracter.equals("\\" + SEPARATOR)){
+                insideComillas = !insideComillas;
+            }
+            if (insideComillas){
+                palabra.append(caracter);
+            }else{
+                if(caracter.equals(SEPARATOR)){
+                    lineaPalabras.add(palabra.toString());
+                    palabra.setLength(0);
+                    cont = cont+1;
+                }else{
+                    palabra.append(caracter);
+                    if (numCharacters-1 == e){
+                        lineaPalabras.add(palabra.toString());
+                        cont = cont+1;
+                    }
+                }
+            }
+        }
+
+        return lineaPalabras;
+    }
     /*
     * Rellena la lista de contenido con texto vacio cuando sea nulo,
     * para evitar null pointers
     */
     private void fillContenidoWithNull(){
-        for(int i = 0; i < contenido.size(); i++){
-            if(contenido.get(i).size() != encabezados.size()){
-                contenido.get(i).add("");
+        for (List<String> strings : contenido) {
+            if (strings.size() != encabezados.size()) {
+                strings.add("");
             }
         }
     }
-    public String printFileContent(){
-        StringBuilder sb = new StringBuilder();
 
-        for (List<String> listPalabra : contenido) {
-            //Recorre cada palabra de cada linea
-            int cont = 1;
-            for(String palabra : listPalabra){
-                if(cont == listPalabra.size()){
-                    sb.append(palabra);
-                }else{
-                    sb.append(palabra).append(",");
-                }
-                cont++;
-            }
-
-            sb.append("\n");
-        }
-
-        return sb.toString();
-    }
-
-    public String printFileHeaders(){
-        StringBuilder sb = new StringBuilder();
-
-        int cont = 1;
-        for(String palabra : encabezados){
-            if(cont == encabezados.size()){
-                sb.append(palabra);
-            }else{
-                sb.append(palabra).append(",");
-            }
-            cont++;
-        }
-
-        sb.append("\n");
-
-        return sb.toString();
-    }
-
-    public int getLineInit(int linea){
-        return lineaStartFinal[linea-1][0];
-    }
-
-    public int getLineFinish(int linea){
-        return lineaStartFinal[linea-1][1];
-    }
     public static boolean isCsvOrProp(File file){
         String extension = file.getPath().substring(file.getPath().lastIndexOf("."));
         logger.info("La extension del archivo seleccionado es: {}", extension);
         return extension.equals(".csv") || extension.equals(".properties");
-    }
-
-    public String getText(File file){
-        String line = "";
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            while ((line = br.readLine()) != null) {
-                 sb.append(line).append("\n");
-            }
-            logger.info("Tamaño texto actual: " + sb.toString().length());
-            return sb.toString();
-        } catch (IOException e) {
-            logger.error("Error leyendo el archivo.");
-        }
-        return "";
     }
 }

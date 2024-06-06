@@ -53,7 +53,6 @@ public class Editor extends JPanel {
         file = new File(path);
         initializeUI();
         initView(DIVIDED_VIEW);
-        //TODO añadir texto con la fuente que sea y demas
 
         logger.info("Nueva pestaña abierta.");
     }
@@ -66,11 +65,12 @@ public class Editor extends JPanel {
         scrollPaneText = new JScrollPane(textPane);
         scrollPaneText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scrollPaneText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        NumeroLinea numeroLinea = new NumeroLinea(textPane);
-        scrollPaneText.setRowHeaderView(numeroLinea);
         scrollPaneTable = new JScrollPane(tablaFile = new FileTableCustom(file));
         scrollPaneTable.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scrollPaneTable.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        EventosDocumento eventosDocumento = new EventosDocumento(textPane, 3, tablaFile);
+        scrollPaneText.setRowHeaderView(eventosDocumento);
+
         panelConfigEditor = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         panelConfigEditor.add(configEditorFont = new JButton("Ajustes editor"));
         panelConfigEditor.add(editTable = new JToggleButton("Editar"));
@@ -103,11 +103,9 @@ public class Editor extends JPanel {
         panelCardLayout.revalidate();
         panelCardLayout.repaint();
     }
-
     public void showTextView() {
         panelCardLayout.add(TEXT_VIEW, scrollPaneText);
     }
-
     public void showTableView() {
         panelCardLayout.add(TABLE_VIEW, scrollPaneTable);
     }
@@ -119,7 +117,6 @@ public class Editor extends JPanel {
         vistaDividida.setDividerLocation(300);
         cl.show(panelCardLayout, DIVIDED_VIEW);
     }
-
     public String idInit(String path) {
         MessageDigest messageDigest = null;
         byte[] hash = null;

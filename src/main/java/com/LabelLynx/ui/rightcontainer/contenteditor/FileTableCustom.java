@@ -3,6 +3,7 @@ package com.LabelLynx.ui.rightcontainer.contenteditor;
 import com.LabelLynx.controlers.CsvSeparator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,7 +11,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -27,18 +27,14 @@ public class FileTableCustom extends JTable {
     public FileTableCustom(File file){
         customTableModel = new CustomTableModel();
         setModel(customTableModel);
-        CustomTableModel model = (CustomTableModel) getModel();
         if(file != null) {
             try {
-                csvSeparator = new CsvSeparator(",");
-                csvSeparator.analiseLines();
+                csvSeparator = new CsvSeparator();
+                csvSeparator.getFileSeparate(file);
+                csvSeparator.analiseLines(null);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            Object[][] data = getContentMatriz();
-
-            String[] columnNames = csvSeparator.getEncabezados().toArray(new String[0]);
-
         }
         setShowGrid(true);
         setCustomTable();
@@ -57,11 +53,50 @@ public class FileTableCustom extends JTable {
         return datos;
     }
 
-    public void setColumnNames(Object[] nameColumns){
+    public void addColumnNames(Object[] nameColumns){
         DefaultTableModel model = (DefaultTableModel) getModel();
-        for(Object name : nameColumns){
-            model.addColumn(name);
+        model.setColumnIdentifiers(nameColumns);
+    }
+
+    public String[] getStringColumns(){
+        String[] nameColumns = new String[getColumnCount()];
+
+        for(int i = 0; i < getColumnCount(); i++){
+            nameColumns[i] = getColumnName(i);
         }
+
+        return nameColumns;
+    }
+
+    public void setContent(){
+        Object[][] data = getContentMatriz();
+        for(Object[] fila : data){
+            addRow(fila);
+        }
+    }
+
+    public void setRow(int linea, Object[] datos){
+        DefaultTableModel model = (DefaultTableModel) getModel();
+        if(!Arrays.equals(datos, getStringColumns())) {
+            if (linea-1 >= model.getRowCount()) {
+                model.addRow(datos);
+            } else {
+                // Reemplazamos la fila existente
+                if(datos.length == 0){
+                    datos = new Object[getColumnCount()];
+                    Arrays.fill(datos, "");
+                }
+                for (int i = 0; i < datos.length; i++) {
+                    model.setValueAt(datos[i], linea-1, i);
+                }
+            }
+        }
+
+    }
+
+    public void deleteRow(int line){
+        DefaultTableModel model = (DefaultTableModel) getModel();
+        model.removeRow(line);
     }
 
     public void addRow(Object[] fila){
@@ -72,11 +107,12 @@ public class FileTableCustom extends JTable {
     private void setCustomTable(){
         JTableHeader header = getTableHeader();
         header.setFont(new Font(getFont().getName(), Font.BOLD, 15));
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        setDefaultRenderer(Object.class, centerRenderer);
+        defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(JLabel.CENTER);
+        setDefaultRenderer(Object.class, defaultTableCellRenderer);
     }
 
+    @Setter
     public static class CustomTableModel extends DefaultTableModel{
 
         private boolean editable;
@@ -85,9 +121,6 @@ public class FileTableCustom extends JTable {
             return editable;
         }
 
-        public void setEditable(boolean editable) {
-            this.editable = editable;
-        }
         public boolean getEditable(){
             return this.editable;
         }
