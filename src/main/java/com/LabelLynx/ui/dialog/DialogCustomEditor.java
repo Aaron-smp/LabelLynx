@@ -122,6 +122,7 @@ public class DialogCustomEditor extends JDialog {
     }
 
     private void setEditorsFont(Font fuente, Color fondo, Color texto){
+        System.out.println("Numero editores: " + tabsEditor.getEditors());
         for (Editor editor : tabsEditor.getEditors()){
             JTextPane textPaneEditor = (JTextPane) editor.getScrollPaneText().getViewport().getView();
             JTable tableEditor = (JTable) editor.getScrollPaneTable().getViewport().getView();

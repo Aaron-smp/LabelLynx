@@ -1,6 +1,7 @@
 package com.LabelLynx.ui.rightcontainer.contenteditor;
 
 import com.LabelLynx.controlers.CsvSeparator;
+import com.LabelLynx.ui.rightcontainer.EventosDocumento;
 import com.LabelLynx.utils.CustomFonts;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
@@ -11,6 +12,7 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,20 +55,24 @@ public class TextEditor extends JTextPane {
             StyleConstants.setFontSize(attributeSet, CustomFonts.getSizeHeaders());
             Document document = getStyledDocument();
             try {
-                document.insertString(0, textFile[0], attributeSet);
-            } catch (BadLocationException e) {
-                StyleConstants.setItalic(attributeSet, true);
-                try {
-                    document.insertString(0, "<Error al insertar los headers>", attributeSet);
-                } catch (BadLocationException ex) {
-                    throw new RuntimeException(ex);
-                }
-                logger.error("Fallo en al insertar los headers");
-            }
-
-            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    try {
+                        EventosDocumento.isProgrammaticUpdate = true;
+                        EventosDocumento.finalLineaProgrammatic = textFile[0].length();
+                        document.insertString(0, textFile[0], attributeSet);
+                        EventosDocumento.isProgrammaticUpdate = false;
+                    }catch (BadLocationException e) {
+                        StyleConstants.setItalic(attributeSet, true);
+                        try {
+                            document.insertString(0, "<Error al insertar los headers>", attributeSet);
+                        } catch (BadLocationException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        logger.error("Fallo en al insertar los headers");
+                    }
+                });
                 addContent(textFile);
-            } catch (BadLocationException e) {
+            } catch (InterruptedException | InvocationTargetException | BadLocationException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -88,16 +94,25 @@ public class TextEditor extends JTextPane {
 
 
             StyledDocument styledDocument = getStyledDocument();
-            try{
-                styledDocument.insertString(styledDocument.getLength(), textFile[1], attributeSet);
-            }catch (BadLocationException e){
-                try {
-                    StyleConstants.setItalic(attributeSet, true);
-                    styledDocument.insertString(0,"<Error al insertar los headers>", attributeSet);
-                } catch (BadLocationException ex) {
-                    logger.error("Error en el texto: {}", ex.toString());
-                }
-                logger.error("Fallo al insertar el contenido");
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    try {
+                        EventosDocumento.isProgrammaticUpdate = true;
+                        EventosDocumento.finalLineaProgrammatic = textFile[1].length();
+                        styledDocument.insertString(styledDocument.getLength(), textFile[1], attributeSet);
+                        EventosDocumento.isProgrammaticUpdate = false;
+                    } catch (BadLocationException e){
+                        try {
+                            StyleConstants.setItalic(attributeSet, true);
+                            styledDocument.insertString(0,"<Error al insertar los headers>", attributeSet);
+                        } catch (BadLocationException ex) {
+                            logger.error("Error en el texto: {}", ex.toString());
+                        }
+                        logger.error("Fallo al insertar el contenido");
+                    }
+                });
+            } catch (InterruptedException | InvocationTargetException e) {
+                throw new RuntimeException(e);
             }
 
             HashMap<Integer, String> fallos = csvSeparator.getWrongLines();
@@ -127,7 +142,7 @@ public class TextEditor extends JTextPane {
         Highlighter.HighlightPainter painter = new WavyUnderlineHighlightPainter(Color.RED);
 
         try {
-            highlighter.addHighlight(inicio, inicio + longitud, painter);
+                highlighter.addHighlight(inicio, inicio + longitud, painter);
         } catch (BadLocationException e) {
             logger.error("Error al subrayar el error en el carácter: {}, {}", inicio, inicio+longitud);
         }

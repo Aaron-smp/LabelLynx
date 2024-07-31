@@ -8,13 +8,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.EventObject;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -27,6 +27,8 @@ public class FileTableCustom extends JTable {
     public FileTableCustom(File file){
         customTableModel = new CustomTableModel();
         setModel(customTableModel);
+        setRowHeight(35);
+        setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         if(file != null) {
             try {
                 csvSeparator = new CsvSeparator();
@@ -53,9 +55,18 @@ public class FileTableCustom extends JTable {
         return datos;
     }
 
-    public void addColumnNames(Object[] nameColumns){
+    public void setColumnNames(Object[] nameColumns){
         DefaultTableModel model = (DefaultTableModel) getModel();
-        model.setColumnIdentifiers(nameColumns);
+        String[] stringColumns = new String[nameColumns.length];
+
+        int numColumnsBefore = getColumnCount();
+
+        for (int i = 0; i < nameColumns.length; i++) {
+            stringColumns[i] = (String) nameColumns[i];
+        }
+
+        model.setColumnIdentifiers(stringColumns);
+        getColumnModel().getColumns().asIterator().forEachRemaining(column -> column.setMinWidth(220));
     }
 
     public String[] getStringColumns(){
@@ -87,7 +98,8 @@ public class FileTableCustom extends JTable {
                     Arrays.fill(datos, "");
                 }
                 for (int i = 0; i < datos.length; i++) {
-                    model.setValueAt(datos[i], linea-1, i);
+                    String contenidoCelda = (String) datos[i];
+                    model.setValueAt(contenidoCelda.trim(), linea-1, i);
                 }
             }
         }

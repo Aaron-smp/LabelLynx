@@ -103,8 +103,7 @@ public class CsvSeparator {
             contenido.add(analiseLine(linea));
         }
         this.contenido = contenido;
-        fillContenidoWithNull();
-        logger.info("Contenido: \n {}", contenido);
+        //fillContenidoWithNull();
         return contenido;
     }
 
@@ -139,6 +138,13 @@ public class CsvSeparator {
 
         return lineaPalabras;
     }
+
+    public ArrayList<List<String>> analiseText(String text){
+        String[] lineas = text.split("\n");
+        ArrayList<String> lines = new ArrayList<>(Arrays.asList(lineas));
+        return analiseLines(lines);
+    }
+
     /*
     * Rellena la lista de contenido con texto vacio cuando sea nulo,
     * para evitar null pointers

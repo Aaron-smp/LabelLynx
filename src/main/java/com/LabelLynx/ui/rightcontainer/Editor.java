@@ -75,7 +75,7 @@ public class Editor extends JPanel {
         panelConfigEditor.add(configEditorFont = new JButton("Ajustes editor"));
         panelConfigEditor.add(editTable = new JToggleButton("Editar"));
         configEditorFont.addActionListener(e -> {
-            DialogCustomEditor dialog = new DialogCustomEditor(ventana);
+            new DialogCustomEditor(ventana);
         });
         editTable.addActionListener((e) -> {
             tablaFile.getCustomTableModel().setEditable(!tablaFile.getCustomTableModel().getEditable());

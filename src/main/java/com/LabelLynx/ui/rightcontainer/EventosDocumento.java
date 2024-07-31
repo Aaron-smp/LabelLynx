@@ -19,20 +19,22 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 
 public class EventosDocumento extends JPanel
-        implements CaretListener, DocumentListener, PropertyChangeListener {
+        implements CaretListener, DocumentListener, PropertyChangeListener, KeyListener {
 
     private static final Logger logger = LogManager.getLogger(EventosDocumento.class);
     public final static float LEFT = 0.0f;
     public final static float CENTER = 0.5f;
     public final static float RIGHT = 1.0f;
-    private Color color1 = new Color(7,86,100);
-    private final static Border OUTER = new MatteBorder(0, 0, 0, 2,Color.BLACK);
+    private Color color1 = new Color(7, 86, 100);
+    private final static Border OUTER = new MatteBorder(0, 0, 0, 2, Color.BLACK);
     private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
     private TextEditor editor;
     private FileTableCustom scrollPaneTable;
@@ -48,13 +50,15 @@ public class EventosDocumento extends JPanel
     private int lastHeight;
     private int lastLine;
     private int previousNumberLines;
+    private int previousLengthLines;
     private HashMap<String, FontMetrics> fonts;
     private boolean lock;
-    //Los nombres de la ultima fina añadida por columnas ejemplo [5,texto,500]
-    private List<String> lastColumnNames;
-    //Almacena las lineas que contengan mas columnas que las definidas en la tabla ejemplo tabla con 3 columnas y contenido 4 columnas [5,texto,500,relleno]
-    private List<Object[]> linesUpperLength;
-
+    private List<String> lastColumnNames;//Los nombres de la última fila añadida por columnas ejemplo [5,texto,500]
+    private List<Object[]> linesUpperLength;//Almacena las lineas que contengan mas columnas que las definidas en la tabla ejemplo tabla con 3 columnas y contenido 4 columnas [5,texto,500,relleno]
+    private List<String> lastHeadersColumnNames;
+    public static boolean isProgrammaticUpdate = false;
+    public static int inicioLineaProgrammatic = 0;
+    public static int finalLineaProgrammatic = 0;
 
     public EventosDocumento(TextEditor editor) {
         this(editor, 3, null);
@@ -68,6 +72,8 @@ public class EventosDocumento extends JPanel
         this.lastColumnNames = new ArrayList<>();
         this.linesUpperLength = new ArrayList<>();
         this.previousNumberLines = 1;
+        this.lastHeadersColumnNames = new ArrayList<>();
+        this.previousLengthLines = 0;
 
         setFont(editor.getFont());
 
@@ -274,19 +280,13 @@ public class EventosDocumento extends JPanel
 
     private void updateTableContentWhenDelete(DocumentEvent e) {
         //TODO REVISAR EL BUG AL BORRAR
-        if(!lock) {
+        if (!lock) {
             lock = true;
             Thread h1 = new Thread(() -> {
                 Element root = editor.getDocument().getDefaultRootElement();
                 int lines = root.getElementCount();
-                int rows = scrollPaneTable.getRowCount(); //Son filas sin contar los nombres de las columnas
-                int header = scrollPaneTable.getTableHeader().getColumnModel().getColumnCount();
-                //System.out.println("Numero de lineas: " + lines);
-                //System.out.println("Numero de lineas anterior: " + previousNumberLines);
 
-                if(lines < previousNumberLines){
-                    System.out.println("Linea a borrar: " + lastLine);
-                    System.out.println("Linea a borrar: " + scrollPaneTable.getRowCount());
+                if (lines < previousNumberLines) {
                     scrollPaneTable.deleteRow(lastLine);
                 }
                 previousNumberLines = lines;
@@ -299,39 +299,63 @@ public class EventosDocumento extends JPanel
     }
 
     private void updateTableContentWhenInsert(DocumentEvent e) {
-        if(!lock) {
+        if (!lock) {
             lock = true;
             Thread h1 = new Thread(() -> {
                 CsvSeparator csvSeparator = editor.getCsvSeparator();
-                List<String> listaNombresColumnas = null;
+                ArrayList<List<String>> listaNombresColumnas = null;
 
                 try {
-                    listaNombresColumnas = csvSeparator.analiseLine(getLine(e.getDocument(), lastLine));
-                    fillWithWhiteSpace(scrollPaneTable.getColumnCount()-listaNombresColumnas.size(), listaNombresColumnas);
+                    if (isProgrammaticUpdate) {
+                        logger.info("Inserción por código");
+                        listaNombresColumnas = csvSeparator.analiseText(e.getDocument().getText(previousLengthLines, finalLineaProgrammatic).trim());
+                        fillWithWhiteSpace(listaNombresColumnas);
+                        if (previousLengthLines == 0 && null != listaNombresColumnas.get(0)) {
+                            lastHeadersColumnNames = listaNombresColumnas.get(0);
+                        }
+                        previousLengthLines = e.getDocument().getLength();
+                    } else {
+
+                        int inicio = getLineLengthInit(e.getDocument(), lastLine);
+                        listaNombresColumnas = csvSeparator.analiseText(e.getDocument().getText(inicio, (e.getDocument().getLength()) - inicio).trim());
+                        fillWithWhiteSpace(listaNombresColumnas);
+                        if (lastLine == 0 && null != listaNombresColumnas.get(0)) {
+                            lastHeadersColumnNames = listaNombresColumnas.get(0);
+                        }
+                    }
                 } catch (BadLocationException ex) {
                     logger.error("Error al recuperar el texto del editor");
                 }
 
-                if (lastLine == 0) {
-                    if(listaNombresColumnas.size() < scrollPaneTable.getColumnCount()) {
-                        listaNombresColumnas.addAll(getListWithNEmptyStrings(scrollPaneTable.getColumnCount()- listaNombresColumnas.size()));
-                    }
 
-                    scrollPaneTable.addColumnNames(listaNombresColumnas.toArray());
-                    lastColumnNames = listaNombresColumnas;
-                } else {
-                    try {
-                        if((null != listaNombresColumnas && !lastColumnNames.equals(listaNombresColumnas) || listaNombresColumnas.isEmpty())){
-                            scrollPaneTable.setRow(lastLine, listaNombresColumnas.toArray());
-                            lastColumnNames = listaNombresColumnas;
+                try {
+
+                    /*
+                    * Poner los nombres de las columnas
+                    */
+                    if (Objects.equals(lastHeadersColumnNames.toString(), listaNombresColumnas.get(0).toString())) {
+                        if (listaNombresColumnas.size() < scrollPaneTable.getColumnCount()) {
+                            listaNombresColumnas.addAll(getListWithNEmptyStrings(scrollPaneTable.getColumnCount() - listaNombresColumnas.size()));
                         }
-
-
-                    }catch (Exception ex){
-                        //Guardar fila para añadirla cuando haya suficientes columnas o por lo menos una mas
-                        linesUpperLength.add(listaNombresColumnas.toArray());
-                        logger.error("No se pudo insertar la linea -> {}", ex.toString());
+                        scrollPaneTable.setColumnNames(listaNombresColumnas.get(0).toArray());
+                        lastColumnNames = listaNombresColumnas.get(0);
                     }
+
+                    /*
+                     * Rellenar las columnas, teniendo un punto de partida de la columna insertada o modificada
+                     */
+                    if (!lastColumnNames.equals(listaNombresColumnas.get(0)) || Objects.requireNonNull(Objects.requireNonNull(listaNombresColumnas).get(0)).isEmpty()) {
+                        for (List<String> stringList : listaNombresColumnas) {
+                            scrollPaneTable.setRow(lastLine, stringList.toArray());
+                            lastColumnNames = stringList;
+                        }
+                    }
+
+                } catch (Exception ex) {
+                    //Guardar fila para añadirla cuando haya suficientes columnas o por lo menos una mas
+                    if (null != listaNombresColumnas && !listaNombresColumnas.get(0).isEmpty())
+                        linesUpperLength.add(listaNombresColumnas.get(0).toArray());
+                    logger.error("No se pudo insertar la linea -> {}", ex.toString());
                 }
                 lock = false;
             });
@@ -339,22 +363,28 @@ public class EventosDocumento extends JPanel
         }
     }
 
-    private void fillWithWhiteSpace(int numberSpace, List<String> listaNombresColumnas){
-        for(int i = 0; i < numberSpace; i++){
-            listaNombresColumnas.add("");
+    private void fillWithWhiteSpace(ArrayList<List<String>> listaNombresColumnas) {
+        for (List<String> individualList : listaNombresColumnas) {
+            int numberSpace = scrollPaneTable.getColumnCount() - individualList.size();
+            for (int i = 0; i < numberSpace; i++) {
+                individualList.add("");
+            }
         }
     }
-    public ArrayList<String> getListWithNEmptyStrings(int numColumns){
-        ArrayList<String> emptyArray = new ArrayList<>();
-        for(int i = 0; i < numColumns; i++){
-            emptyArray.add("");
+
+    public ArrayList<List<String>> getListWithNEmptyStrings(int numColumns) {
+        ArrayList<List<String>> emptyArray = new ArrayList<>();
+        emptyArray.add(new ArrayList<>());
+        for (int i = 0; i < numColumns; i++) {
+            emptyArray.get(0).add("");
         }
         return emptyArray;
     }
+
     public String getLine(Document doc, int lineIndex) throws BadLocationException {
         int inicio = getLineLengthInit(doc, lineIndex);
         int finalPos = getLineLengthEnd(doc, lineIndex);
-        return doc.getText(inicio, finalPos-inicio).trim();
+        return doc.getText(inicio, finalPos - inicio).trim();
     }
 
     public int getLineLengthInit(Document doc, int lineIndex) {
@@ -406,13 +436,31 @@ public class EventosDocumento extends JPanel
                         lastHeight = rect.y;
                     }
                 } catch (BadLocationException ex) {
-                    /* nothing to do */ }
+                    /* nothing to do */
+                }
             }
         });
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE || e.getKeyCode() == KeyEvent.VK_DELETE) {
+            System.out.println("JAJA BORRASTE ALGO");
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
 
     }
 }

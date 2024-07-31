@@ -1,11 +1,16 @@
 package com.LabelLynx.ui.menus;
 
+import com.LabelLynx.ui.rightcontainer.ContainerEditorAnotations;
+import com.LabelLynx.ui.rightcontainer.EventosDocumento;
 import com.LabelLynx.ui.rightcontainer.TabsEditor;
 import com.LabelLynx.utils.CustomFonts;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
+import static com.LabelLynx.LabelLynxApplication.ventana;
 import static com.LabelLynx.ui.rightcontainer.ContainerEditorAnotations.tabsEditor;
 import static com.LabelLynx.ui.rightcontainer.Editor.*;
 
@@ -22,6 +27,8 @@ public class TopMenu extends JMenuBar{
         JMenuItem openItem = new JMenuItem("Abrir");
         JMenuItem saveItem = new JMenuItem("Guardar");
         JMenuItem exitItem = new JMenuItem("Salir");
+
+        openItem.addActionListener(setOpenFileListener());
 
         fileMenu.add(newItem);
         fileMenu.add(openItem);
@@ -57,5 +64,16 @@ public class TopMenu extends JMenuBar{
         this.add(view);
         this.add(tools);
         this.add(help);
+    }
+
+    private ActionListener setOpenFileListener(){
+
+        return (e) -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileFilter(new FileNameExtensionFilter(null, "prop", "csv"));
+            fileChooser.showDialog(ventana, "Archivo");
+            ContainerEditorAnotations.tabsEditor.addTabWithText(fileChooser.getSelectedFile());
+        };
     }
 }
