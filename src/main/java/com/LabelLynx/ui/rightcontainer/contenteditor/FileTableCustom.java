@@ -24,33 +24,12 @@ public class FileTableCustom extends JTable {
     private CsvSeparator csvSeparator;
 
     private CustomTableModel customTableModel;
-    public FileTableCustom(File file){
+    public FileTableCustom(CsvSeparator csvSeparator){
         customTableModel = new CustomTableModel();
         setModel(customTableModel);
-        if(file != null) {
-            try {
-                csvSeparator = new CsvSeparator();
-                csvSeparator.getFileSeparate(file);
-                csvSeparator.analiseLines(null);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        this.csvSeparator = csvSeparator;
         setShowGrid(true);
         setCustomTable();
-    }
-
-    private Object[][] getContentMatriz() {
-        Object[][] datos = new Object[csvSeparator.getContenido().size()][csvSeparator.getEncabezados().size()];
-        for(int i = 0; i < csvSeparator.getContenido().size(); i++){
-            for(int e = 0; e < csvSeparator.getEncabezados().size(); e++){
-                if(null != csvSeparator.getContenido().get(i).get(e)){
-                    datos[i][e] = csvSeparator.getContenido().get(i).get(e);
-                }
-            }
-        }
-
-        return datos;
     }
 
     public void addColumnNames(Object[] nameColumns){
@@ -73,6 +52,19 @@ public class FileTableCustom extends JTable {
         for(Object[] fila : data){
             addRow(fila);
         }
+    }
+
+    private Object[][] getContentMatriz() {
+        Object[][] datos = new Object[csvSeparator.getContenido().size()][csvSeparator.getEncabezados().size()];
+        for(int i = 0; i < csvSeparator.getContenido().size(); i++){
+            for(int e = 0; e < csvSeparator.getEncabezados().size(); e++){
+                if(null != csvSeparator.getContenido().get(i).get(e)){
+                    datos[i][e] = csvSeparator.getContenido().get(i).get(e);
+                }
+            }
+        }
+
+        return datos;
     }
 
     public void setRow(int linea, Object[] datos){

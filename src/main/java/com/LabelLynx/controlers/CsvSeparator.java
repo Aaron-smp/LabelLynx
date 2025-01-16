@@ -28,6 +28,7 @@ public class CsvSeparator {
     private ArrayList<String> encabezados;
     private ArrayList<String> lineas;
     private ArrayList<List<String>> contenido;
+    private String[] fichero;
 
     private String SEPARATOR = null;
     private int sizeStringEncabezado;
@@ -40,6 +41,7 @@ public class CsvSeparator {
         SEPARATOR = separador;
         encabezados = new ArrayList<>();
         lineas = new ArrayList<>();
+        fichero = new String[2];
         logger.info("Encabezado: {}", encabezados);
     }
 
@@ -48,7 +50,6 @@ public class CsvSeparator {
     * */
     public String[] getFileSeparate(File file) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file.getAbsoluteFile())));
-        String[] fichero = new String[2];
         String encabezadoLn = br.readLine().concat("\n");
         sizeStringEncabezado = encabezadoLn.length();
         logger.info("Tamaño encabezado: {}", encabezadoLn.length());

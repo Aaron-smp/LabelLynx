@@ -20,26 +20,22 @@ public class TextEditor extends JTextPane {
 
     @Getter
     private CsvSeparator csvSeparator;
-    public TextEditor(File file) {
+    public TextEditor(CsvSeparator csvSeparator) {
         setMinimumSize(new Dimension(300, 250));
-        try {
-            if(file != null){
-                csvSeparator = new CsvSeparator();
-                String[] textFile = csvSeparator.getFileSeparate(file);
-                csvSeparator.analiseLines(null);
-                try{
-                    addHeaders(textFile);
-                }catch (BadLocationException e){
-                    logger.error("Error al meter el contenido {}", e.toString());
-                }
-            }else{
-                csvSeparator = new CsvSeparator();
-            }
-        } catch (IOException e) {
-            logger.error("No ha sido posible analizar el texto");
+        this.csvSeparator = csvSeparator;
+        String[] textFile = csvSeparator.getFichero();
+        try{
+            addHeaders(textFile);
+        }catch (BadLocationException e){
+            logger.error("Error al meter el contenido {}", e.toString());
         }
     }
 
+    /*
+    *
+    *   Función que se usa una vez al abrir un archivo para escribir los indices con diferente fuente.
+    *
+     */
     public void addHeaders(String[] textFile) throws BadLocationException {
         Thread h1 = new Thread(() -> {
             try {
@@ -74,6 +70,11 @@ public class TextEditor extends JTextPane {
         h1.start();
     }
 
+    /*
+     *
+     *   Función que se usa una vez al abrir un archivo para escribir el contenido con diferente fuente.
+     *
+     */
     public void addContent(String[] textFile) throws BadLocationException {
         Thread h1 = new Thread(() -> {
             try {
@@ -108,6 +109,11 @@ public class TextEditor extends JTextPane {
         h1.start();
     }
 
+    /*
+    *
+    * Función que se ejecuta una vez al leer el texto de un archivo abierto
+    *
+    */
     private void underlineWrongText(HashMap<Integer, String> fallos, String fallo){
         for (Map.Entry<Integer, String> entry : fallos.entrySet()) {
             int inicio = getLineLengthInit(entry.getKey());
@@ -122,6 +128,12 @@ public class TextEditor extends JTextPane {
         }
     }
 
+    /*
+    *
+    * Función para subrayar por posicion en el
+    * texto solo se ejecuta en la lectura al abrir el fichero
+    *
+    */
     public void addErrorUnderLine(int inicio, int longitud){
         Highlighter highlighter = getHighlighter();
         Highlighter.HighlightPainter painter = new WavyUnderlineHighlightPainter(Color.RED);
@@ -134,7 +146,11 @@ public class TextEditor extends JTextPane {
     }
 
 
-
+    /*
+    *
+    *   Clase utilizada para crear la raya que subraya el texto
+    *
+    */
     static class WavyUnderlineHighlightPainter extends LayeredHighlighter.LayerPainter {
         private final Color color;
 

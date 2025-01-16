@@ -1,8 +1,6 @@
-package com.LabelLynx.ui.rightcontainer;
+package com.LabelLynx.ui.rightcontainer.contenteditor;
 
 import com.LabelLynx.controlers.CsvSeparator;
-import com.LabelLynx.ui.rightcontainer.contenteditor.FileTableCustom;
-import com.LabelLynx.ui.rightcontainer.contenteditor.TextEditor;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;

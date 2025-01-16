@@ -13,7 +13,7 @@ import java.util.HashMap;
 public class CustomFonts {
     private static final Logger logger = LogManager.getLogger(CustomFonts.class);
     private static final String FONTS_PATH = "/fonts/";
-    public static Font actualFont = getFontFromResources("Cabin.tff");
+    public static Font actualFont = getFontFromResources("Cabin.ttf");
     public static Font defaultFont = getFontFromResources("JetBrainsMono-Regular.ttf");
     private static HashMap<ConfigText, Object> configurationText;
 
